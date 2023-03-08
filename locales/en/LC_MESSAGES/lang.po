@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HiveCMS - EN\n"
+"POT-Creation-Date: 2023-01-30 11:57+0800\n"
+"PO-Revision-Date: 2023-01-30 18:27+0800\n"
+"Last-Translator: \n"
+"Language-Team: 21520993@qq.com\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-Basepath: ../../core\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: apps/demo/routers/test_router.py:10
+msgid "test_index"
+msgstr "test Index Page2"
+
+#: core/fastapi.py:23
+msgid "Not found"
+msgstr ""
