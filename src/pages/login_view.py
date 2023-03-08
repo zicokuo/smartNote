@@ -1,10 +1,9 @@
 import flet
 
 
-def login_view(ctx):
-    path = '/login'
+def page(ctx: flet.Page, route: str):
     view: flet.View = flet.View(
-        path,
+        route,
         [
             flet.Text('牛逼')
         ]

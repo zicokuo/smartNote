@@ -1,22 +1,37 @@
 from functools import wraps
+from importlib import import_module
+from typing import List
 
 import flet
 import pydash
-
-from src.pages.login_view import login_view
+from flet_core import RouteChangeEvent
+from pydantic import BaseModel
 
 boot_ctx = {}
 
 
-def init_app():
+class RouteItem(BaseModel):
+    route: str
+    filename: str = None
+
+
+def auto_import(item: RouteItem):
+    pydash.set_(boot_ctx,
+                f"routers.{item.route}",
+                import_module(name=f"pages.{item.filename}", package="src").page, )
+
+
+def init_app(routers: List[RouteItem]):
+    # 加载页面
+    pydash.for_each(routers, auto_import)
     flet.app(target=boot)
 
 
 def boot(ctx: flet.Page):
     pydash.set_(boot_ctx, 'ctx', ctx)
-    pydash.set_(boot_ctx, 'routers', {
-        "/login": login_view
-    })
+    # pydash.set_(boot_ctx, 'routers', {
+    #     "/login": login_view
+    # })
 
     ctx.on_route_change = route_change
     ctx.on_view_pop = view_pop
@@ -48,11 +63,11 @@ def flet_view(f, path: str):
 
 
 @flet_context
-def route_change(route, ctx):
+def route_change(route: RouteChangeEvent, ctx):
     ctx.views.clear()
-    ctx_view = pydash.get(boot_ctx, f'routers.{ctx.route}')
+    ctx_view = pydash.get(boot_ctx, f'routers.{route.data}')
     if ctx_view:
-        ctx.views.append(ctx_view(ctx))
+        ctx.views.append(ctx_view(ctx, ctx.route))
     else:
         ctx.views.append(
             flet.View(

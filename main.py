@@ -1,8 +1,7 @@
-from src.core.boot import init_app
-from src.pages import login_view
+from src.core.boot import init_app, RouteItem
 
 if __name__ == '__main__':
-    routers = {
-        "/login": login_view
-    }
-    init_app()
+    routers = [
+        RouteItem(route="/login", filename="login_view")
+    ]
+    init_app(routers)

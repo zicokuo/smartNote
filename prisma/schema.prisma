@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-py"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model test {
+  id Int?
+
+  @@ignore
+}
+
+model Dict {
+  id        String    @id @default(uuid())
+  main_code String
+  sub_code  String
+  group     String
+  status    Boolean   @default(true)
+  create_at DateTime? @default(now())
+  update_at DateTime? @default(now())
+
+  values DictValues[]
+
+  @@unique([main_code, sub_code])
+}
+
+model DictValues {
+  id        String    @id @default(uuid())
+  code      String
+  value     String?
+  sort      Int       @default(-1)
+  type      String    @default("text")
+  create_at DateTime? @default(now())
+  update_at DateTime? @default(now())
+
+  Dict   Dict?   @relation(fields: [dictId], references: [id])
+  dictId String?
+
+  @@unique([code, dictId])
+}
