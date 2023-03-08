@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "smart-note"
+version = "0.1.0"
+description = ""
+authors = ["zico"]
+readme = "README.md"
+packages = [{include = "smart_note"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flet = "^0.4.2"
+pickleDB = "^0.9.2"
+prisma = "^0.8.2"
+pydash = "^6.0.2"
+pandas = "^1.5.3"
+pydantic = "^1.10.5"
+requests = "^2.28.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
