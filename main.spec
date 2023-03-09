@@ -5,10 +5,10 @@ block_cipher = None
 
 
 a = Analysis(
-    ['./main.py'],
-    pathex=['./src/*.py'],
+    ['src\\main.py'],
+    pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets', 'assets'), ('src', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,10 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-)
-app = BUNDLE(
-    exe,
-    name='main.app',
-    icon=None,
-    bundle_identifier=None,
+    version='C:\\Users\\DELL\\AppData\\Local\\Temp\\42551834-1d88-42f1-86df-1645dee46a90',
 )

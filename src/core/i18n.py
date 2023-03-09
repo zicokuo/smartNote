@@ -2,7 +2,7 @@ import gettext
 from functools import cache
 from typing import Optional
 
-from core.settings import LANG, LOCALE_PATH
+from settings import LANG, LOCALE_PATH
 
 
 @cache
