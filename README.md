@@ -18,3 +18,8 @@ poetry config virtualenvs.in-project true
 # 安装项目依赖
 poetry install
 ```
+
+开发采用HotReload模式进行监听文件变更自动更新
+```shell
+flet run ./src/main.py -r
+```

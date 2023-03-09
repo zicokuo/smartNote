@@ -1,7 +1,7 @@
 import flet
 from flet_core import MainAxisAlignment, CrossAxisAlignment, AppBar
 
-from core.functions import _
+from core.functions import _, event_back
 
 view_input: flet.View = None
 
@@ -28,6 +28,7 @@ def login_form():
         password_input_ctl,
         flet.Row([
             flet.ElevatedButton(text=_("登录"), on_click=event_login_form_submit),
+            flet.ElevatedButton(text=_("返回"), on_click=event_back),
         ])
     ],
         alignment=MainAxisAlignment.CENTER,

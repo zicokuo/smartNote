@@ -13,7 +13,9 @@ LOCALE_PATH = os.path.join(ASSETS_PATH, 'locales')  # 语言包目录
 
 # 多语言
 LANG = os.getenv('LANG', 'en')
-
+PAGES = {
+    "/": "index_view",
+}
 # 实装应用列表
 
 # 合并环境变量

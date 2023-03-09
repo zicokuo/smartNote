@@ -1,5 +1,7 @@
 import logging
 
+import flet
+
 from core.i18n import get_text
 
 
@@ -17,3 +19,6 @@ logging.basicConfig(format='%(asctime)s %(module)s %(name)s_%(levelname)s:  %(me
                     level=logging.INFO)
 logger = logging.getLogger("SYS")
 logger.setLevel(logging.INFO)
+
+def event_back(e:flet.ControlEvent):
+    e.page.go('/')
