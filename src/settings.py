@@ -3,26 +3,38 @@
 """
 import os
 
+import flet
+
 # app 配置
 HOST_PORT = 6006
+
 # 路径
 ROOT_PATH = os.path.join(os.path.abspath(f'{os.path.dirname(__file__)}/../'))  # 根目录
 ASSETS_PATH = os.path.join(ROOT_PATH, 'assets')  # 静态文件目录
 UPLOAD_PATH = os.path.join(ASSETS_PATH, 'uploads')  # 上传目录
 LOCALE_PATH = os.path.join(ASSETS_PATH, 'locales')  # 语言包目录
 LOG_PATH = os.path.join(ROOT_PATH, "temp")  # 日志目录
+
 # 多语言
 LANG = os.getenv('LANG', 'en')
 
+# 字体声明
 FONTS = {
     "PTMono": "/fonts/PT-Mono.ttf"
 }
 
+# 页面路由
 PAGES = {
     "/": "index_view",
     "/login": "login_view",
+    "/dashboard": "dashboard_view",
 }
 # 实装应用列表
+APP_CONFIG = dict(
+    title="SmartNote",
+    theme_mode="dark",
+    window_width=960,
+    window_height=640)
 
 # 合并环境变量
 from core.venvs import *

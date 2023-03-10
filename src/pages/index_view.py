@@ -1,17 +1,16 @@
-import flet
-from flet_core import CrossAxisAlignment
+from flet_core import CrossAxisAlignment, ElevatedButton, Page, View
 
-from pages.widgets.app_bar import app_bar
+from core.functions import _
 from pages.widgets.welcome import welcome_ctl
 
-view_input: flet.View = None
+view_input: View = None
 
 
-def page(ctx: flet.Page, route: str):
-    view_input = flet.View(
+def page(ctx: Page, route: str):
+    view_input = View(
         route, [
             welcome_ctl(),
-            flet.ElevatedButton("登了个录2", on_click=lambda _: ctx.go("/login")),
+            ElevatedButton(_("登入"), on_click=lambda _: ctx.go("/dashboard")),
         ],
         horizontal_alignment=CrossAxisAlignment.CENTER,
     )

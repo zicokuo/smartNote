@@ -8,15 +8,16 @@ from settings import DEBUG, LOG_PATH, CODING_SET
 
 def _(t: str, *args):
     """
-    快捷翻译
+    翻译
+    :param t:
+    :param args:
+    :return:
     """
-    if len(args) > 0:
-        return get_text(t.format(*args))
-    return get_text(t)
+    return get_text(t.format(*args)) if args else get_text(t)
 
 
 logging.basicConfig(format='%(asctime)s %(module)s %(name)s_%(levelname)s:  %(message)s',
-                    filename=f'{LOG_PATH}/log.txt',
+                    filename=f'{LOG_PATH}/log.log',
                     filemode='a+',
                     datefmt='%y%m%d %H:%M:%S',
                     encoding=CODING_SET,

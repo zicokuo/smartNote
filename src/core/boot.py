@@ -1,31 +1,27 @@
 from functools import wraps
 from importlib import import_module
-from typing import List, Optional
+from typing import List, Optional, Callable, T
 
 import flet
 import pydash
-from flet_core import RouteChangeEvent, Theme
-from pydantic import BaseModel
+from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment
 
 from core.functions import _, log
-from settings import PAGES, FONTS, ROOT_PATH
+from core.vos import RouteItemVo
+from settings import PAGES, FONTS, APP_CONFIG
 
+# 全局缓存对象
 boot_ctx = {}
 
 
-class RouteItem(BaseModel):
-    route: str
-    filename: str = None
-
-
-def auto_import(item: RouteItem):
+def auto_import(item: RouteItemVo):
     log.info(_(f"自动加载{item.route}挂在{item.filename}"))
     pydash.set_(boot_ctx,
                 f"routers.{item.route}",
                 import_module(name=f".{item.filename}", package="pages").page, )
 
 
-def init_app(routers: Optional[List[RouteItem]] = None):
+def init_app(routers: Optional[List[RouteItemVo]] = None):
     """
     应用入口
     :param routers: 自定义路由表
@@ -33,11 +29,11 @@ def init_app(routers: Optional[List[RouteItem]] = None):
     """
 
     # 自动加载
-    pydash.for_in(PAGES, lambda v, k: auto_import(RouteItem(route=k, filename=v))) if PAGES is not None else None
-
+    pydash.for_in(PAGES, lambda v, k: auto_import(RouteItemVo(route=k, filename=v))) if PAGES is not None else None
     pydash.for_each(routers, auto_import) if routers is not None else None
 
-    flet.app(target=boot, assets_dir=f"../assets")
+    # 应用开始
+    flet.app(target=boot, assets_dir="../assets")
 
 
 def boot(ctx: flet.Page):
@@ -47,31 +43,36 @@ def boot(ctx: flet.Page):
     if FONTS:
         ctx.fonts = FONTS
 
-    ctx.theme_mode = flet.ThemeMode.LIGHT
+    # 加载 APP_CONFIG:
+    for v in APP_CONFIG:
+        pydash.set_(ctx, v, APP_CONFIG[v])
+
+    ctx.horizontal_alignment = CrossAxisAlignment.CENTER
+    ctx.vertical_alignment = MainAxisAlignment.CENTER
 
     ctx.on_route_change = route_change
     ctx.on_view_pop = view_pop
     ctx.go(ctx.route)
 
 
-def flet_context(f):
-    @wraps(f)
+def flet_context(func: Callable[..., T]) -> Callable[..., T]:
+    @wraps(func)
     def wrapper(*args, **kwargs):
         ctx: flet.Page = pydash.get(boot_ctx, 'ctx')
-        res = f(ctx=ctx, *args, **kwargs)
+        res = func(ctx=ctx, *args, **kwargs)
         pydash.set_(boot_ctx, 'ctx', ctx)
         return res
 
     return wrapper
 
 
-def flet_view(f, path: str):
-    pydash.set_(boot_ctx, f'routers.{path}', f)
+def flet_view(func, path: str):
+    pydash.set_(boot_ctx, f'routers.{path}', func)
 
-    @wraps(f)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         ctx: flet.Page = pydash.get(boot_ctx, 'ctx')
-        route_path, view = f(ctx=ctx, *args, **kwargs)
+        route_path, view = func(ctx=ctx, *args, **kwargs)
         pydash.set_(boot_ctx, 'ctx', ctx)
         return view
 
@@ -81,7 +82,7 @@ def flet_view(f, path: str):
 @flet_context
 def route_change(route: RouteChangeEvent, ctx):
     ctx.views.clear()
-    ctx_view = pydash.get(boot_ctx, f'routers.{route.data}')
+    ctx_view = pydash.get(boot_ctx, f"routers.{route.data}")
 
     if ctx_view:
         ctx.views.append(ctx_view(ctx, ctx.route))
