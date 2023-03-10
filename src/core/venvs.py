@@ -1,4 +1,6 @@
 """
 环境变量配置
 """
-DEBUG = True
+import os
+
+DEBUG = os.getenv('DEBUG', True)

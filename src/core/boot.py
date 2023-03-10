@@ -7,7 +7,8 @@ import pydash
 from flet_core import RouteChangeEvent, Theme
 from pydantic import BaseModel
 
-from settings import PAGES
+from core.functions import _, log
+from settings import PAGES, FONTS, ROOT_PATH
 
 boot_ctx = {}
 
@@ -18,29 +19,39 @@ class RouteItem(BaseModel):
 
 
 def auto_import(item: RouteItem):
+    log.info(_(f"自动加载{item.route}挂在{item.filename}"))
     pydash.set_(boot_ctx,
                 f"routers.{item.route}",
                 import_module(name=f".{item.filename}", package="pages").page, )
 
 
-def init_app(routers: Optional[List[RouteItem]] = []):
+def init_app(routers: Optional[List[RouteItem]] = None):
     """
     应用入口
     :param routers: 自定义路由表
     :return:
     """
-    pydash.for_in(PAGES, lambda y, x: auto_import(RouteItem(route=x, filename=y)))
-    pydash.for_each(routers, auto_import)
-    flet.app(target=boot, assets_dir="assets")
+
+    # 自动加载
+    pydash.for_in(PAGES, lambda v, k: auto_import(RouteItem(route=k, filename=v))) if PAGES is not None else None
+
+    pydash.for_each(routers, auto_import) if routers is not None else None
+
+    flet.app(target=boot, assets_dir=f"../assets")
 
 
 def boot(ctx: flet.Page):
     pydash.set_(boot_ctx, 'ctx', ctx)
+
+    # 加载字体
+    if FONTS:
+        ctx.fonts = FONTS
+
     ctx.theme_mode = flet.ThemeMode.LIGHT
+
     ctx.on_route_change = route_change
     ctx.on_view_pop = view_pop
     ctx.go(ctx.route)
-
 
 
 def flet_context(f):

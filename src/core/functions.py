@@ -3,6 +3,7 @@ import logging
 import flet
 
 from core.i18n import get_text
+from settings import DEBUG, LOG_PATH, CODING_SET
 
 
 def _(t: str, *args):
@@ -15,10 +16,16 @@ def _(t: str, *args):
 
 
 logging.basicConfig(format='%(asctime)s %(module)s %(name)s_%(levelname)s:  %(message)s',
+                    filename=f'{LOG_PATH}/log.txt',
+                    filemode='a+',
                     datefmt='%y%m%d %H:%M:%S',
-                    level=logging.INFO)
+                    encoding=CODING_SET,
+                    level=DEBUG if logging.DEBUG else logging.INFO)
 logger = logging.getLogger("SYS")
-logger.setLevel(logging.INFO)
+logger.setLevel(DEBUG if logging.DEBUG else logging.INFO)
 
-def event_back(e:flet.ControlEvent):
+log: logging.Logger = logger
+
+
+def event_back(e: flet.ControlEvent):
     e.page.go('/')

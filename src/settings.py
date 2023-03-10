@@ -10,11 +10,17 @@ ROOT_PATH = os.path.join(os.path.abspath(f'{os.path.dirname(__file__)}/../'))  #
 ASSETS_PATH = os.path.join(ROOT_PATH, 'assets')  # 静态文件目录
 UPLOAD_PATH = os.path.join(ASSETS_PATH, 'uploads')  # 上传目录
 LOCALE_PATH = os.path.join(ASSETS_PATH, 'locales')  # 语言包目录
-
+LOG_PATH = os.path.join(ROOT_PATH, "temp")  # 日志目录
 # 多语言
 LANG = os.getenv('LANG', 'en')
+
+FONTS = {
+    "PTMono": "/fonts/PT-Mono.ttf"
+}
+
 PAGES = {
     "/": "index_view",
+    "/login": "login_view",
 }
 # 实装应用列表
 
@@ -25,4 +31,4 @@ from core.venvs import *
 DEBUG = os.getenv('DEBUG') or DEBUG
 
 # 字符集
-CHATSET_UTF8 = "utf-8"
+CODING_SET = "utf-8"

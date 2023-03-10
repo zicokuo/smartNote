@@ -23,3 +23,9 @@ poetry install
 ```shell
 flet run ./src/main.py -r
 ```
+
+## 打包
+项目采用 pyInstaller 进行打包, 多平台通用
+```shell
+flet pack ./src/main.py --name SmartNote --add-data "assets;assets" --add-data "src;." 
+```

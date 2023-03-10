@@ -28,7 +28,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='smartNote',
+    name='SmartNote',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\DELL\\AppData\\Local\\Temp\\bb516f66-eb47-484c-b02b-f13f2dcb55b7',
+    version='C:\\Users\\DELL\\AppData\\Local\\Temp\\2a41a0cb-bfd1-4700-bfae-38d93dedc9d0',
 )
