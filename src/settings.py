@@ -25,16 +25,15 @@ FONTS = {
 
 # 页面路由
 PAGES = {
-    "/": "index_view",
-    "/login": "login_view",
+    "/"         : "index_view",
     "/dashboard": "dashboard_view",
 }
 # 实装应用列表
 APP_CONFIG = dict(
     title="SmartNote",
-    theme_mode="dark",
-    window_width=960,
-    window_height=640)
+    theme_mode="light",
+    window_width=1024,
+    window_height=678)
 
 # 合并环境变量
 from core.venvs import *
@@ -44,3 +43,5 @@ DEBUG = os.getenv('DEBUG') or DEBUG
 
 # 字符集
 CODING_SET = "utf-8"
+
+DEFAULT_IMG = "/imgs/Icon - empty.png"

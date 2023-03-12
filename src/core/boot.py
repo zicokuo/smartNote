@@ -4,11 +4,11 @@ from typing import List, Optional, Callable, T
 
 import flet
 import pydash
-from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment
+from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment, Page, KeyboardEvent
 
 from core.functions import _, log
 from core.vos import RouteItemVo
-from settings import PAGES, FONTS, APP_CONFIG
+from settings import PAGES, FONTS, APP_CONFIG, DEBUG
 
 # 全局缓存对象
 boot_ctx = {}
@@ -33,7 +33,7 @@ def init_app(routers: Optional[List[RouteItemVo]] = None):
     pydash.for_each(routers, auto_import) if routers is not None else None
 
     # 应用开始
-    flet.app(target=boot, assets_dir="../assets")
+    flet.app(target=boot, assets_dir="assets")
 
 
 def boot(ctx: flet.Page):
@@ -57,7 +57,7 @@ def boot(ctx: flet.Page):
 
 def flet_context(func: Callable[..., T]) -> Callable[..., T]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Callable[..., T], **kwargs: Callable[..., T]):
         ctx: flet.Page = pydash.get(boot_ctx, 'ctx')
         res = func(ctx=ctx, *args, **kwargs)
         pydash.set_(boot_ctx, 'ctx', ctx)
@@ -80,7 +80,7 @@ def flet_view(func, path: str):
 
 
 @flet_context
-def route_change(route: RouteChangeEvent, ctx):
+def route_change(route: RouteChangeEvent, ctx: Page):
     ctx.views.clear()
     ctx_view = pydash.get(boot_ctx, f"routers.{route.data}")
 
@@ -98,12 +98,26 @@ def route_change(route: RouteChangeEvent, ctx):
                 ],
             )
         )
+    if DEBUG:
+        ctx.on_keyboard_event = keybard_event
 
     ctx.update()
 
 
 @flet_context
-def view_pop(view, ctx):
+def view_pop(view, ctx: Page):
     ctx.views.pop()
     top_view = ctx.views[-1]
     ctx.go(top_view.route)
+
+
+def keybard_event(e: KeyboardEvent):
+    """
+    调试模式
+    @param e:
+    @return:
+    """
+    if e.key == "H" and e.ctrl:
+        log.debug(f"Key: {e.key}, Shift: {e.shift}, Control: {e.ctrl}, Alt: {e.alt}, Meta: {e.meta}")
+        e.page.show_semantics_debugger = not e.page.show_semantics_debugger
+        e.page.update()

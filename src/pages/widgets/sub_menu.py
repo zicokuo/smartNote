@@ -1,20 +1,21 @@
-from flet_core import Page, Column, ScrollMode, Text, Container, colors
+from typing import List
+
+from flet_core import Page, Column, ScrollMode, Text, Container, colors, border, BorderSide
 
 from core.boot import flet_context
 
 
 @flet_context
-def sub_menu(ctx: Page):
-    ctl = Container(Column(controls=[
-        Text("1"),
-        Text("1"),
-        Text("1"),
-        Text("1"),
-        Text("1"),
-    ],
-        scroll=ScrollMode.ADAPTIVE,
+def sub_menu_widget(ctx: Page, controls: List=[]):
+    """
+    侧栏菜单
+    @type ctx: Page
+    @type controls: List
+    """
+    widget = Container(Column(controls=[
+        *controls
+    ], scroll=ScrollMode.ADAPTIVE,
         width=ctx.window_width / 4,
         height=ctx.window_height,
-    ),
-    bgcolor=colors.BLACK87)
-    return ctl
+    ), border=border.only(right=BorderSide(1, colors.BLACK12)))
+    return widget

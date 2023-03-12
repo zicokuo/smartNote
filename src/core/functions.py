@@ -17,13 +17,12 @@ def _(t: str, *args):
 
 
 logging.basicConfig(format='%(asctime)s %(module)s %(name)s_%(levelname)s:  %(message)s',
-                    filename=f'{LOG_PATH}/log.log',
+                    # filename=f'{LOG_PATH}/log.log',
                     filemode='a+',
                     datefmt='%y%m%d %H:%M:%S',
-                    encoding=CODING_SET,
-                    level=DEBUG if logging.DEBUG else logging.INFO)
+                    encoding=CODING_SET)
 logger = logging.getLogger("SYS")
-logger.setLevel(DEBUG if logging.DEBUG else logging.INFO)
+logger.setLevel(DEBUG if logging.INFO else logging.WARN)
 
 log: logging.Logger = logger
 
