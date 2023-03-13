@@ -3,7 +3,7 @@ from typing import Optional, List
 import pydash
 from flet_core import CrossAxisAlignment, Page, View, Container, Row, Image, Column, ImageFit, Text, ImageRepeat, \
     border_radius, IconButton, icons, MainAxisAlignment, colors, ControlEvent, AlertDialog, TextField, TextButton, \
-    Switch, Dropdown, dropdown, ListView, UserControl, Ref
+    Switch, Dropdown, dropdown, ListView, UserControl, Ref, ListTile, Card, Markdown, MarkdownExtensionSet, ScrollMode
 
 from core.boot import flet_context
 from core.database import db_this
@@ -18,25 +18,64 @@ from styles import FONT_SIZE, SUMMARY_SIZE
 
 class CateTreeControl(UserControl):
     cate_tree: List[PostCate]
+    lv = ListView(expand=1, spacing=0, auto_scroll=True)
 
     def build(self):
         self.cate_tree = refresh_cate_tree()
-        self.lv = ListView(expand=1, spacing=0, auto_scroll=True, controls=list(
-            Text(f"{item.title}") for item in self.cate_tree
-        ))
+        self.lv.controls = list(
+            ListTile(title=Text(f"{item.title}"), data=item, on_click=self
+                     .on_cate_item_show) for item in self.cate_tree
+        )
         return self.lv
 
     def refresh(self):
         self.cate_tree = refresh_cate_tree(is_refresh=True)
-        self.lv = ListView(expand=1, spacing=0, auto_scroll=True, controls=list(
-            Text(f"{item.title}") for item in self.cate_tree
-        ))
+        self.lv.controls = list(
+            ListTile(title=Text(f"{item.title}"), data=item, on_click=self
+                     .on_cate_item_show) for item in self.cate_tree
+        )
         print(self.cate_tree)
+        self.update()
+
+    def on_cate_item_show(self, e: ControlEvent):
+        pass
+
+
+class MarkdownEditor(UserControl):
+    content: str = ""
+    text_area: TextField = TextField(
+        label="Markdown Editor",
+        multiline=True,
+        expand=1,
+        min_lines=20,
+        selection_color=colors.LIME,
+
+    )
+    view_area: Markdown = Markdown(
+        selectable=True,
+        extension_set=MarkdownExtensionSet.GITHUB_WEB,
+        on_tap_link=lambda e: page.launch_url(e.data),
+        expand=1
+    )
+    ctl = Card(Row([text_area, view_area]), expand=1 )
+
+    def build(self):
+        self.text_area.on_change = self.on_text_area_change
+
+        self.view_area.value = f"""{self.content}"""
+
+        return self.ctl
+
+    def on_text_area_change(self, e):
+        self.content = e.control.value
+        self.view_area.value = f"""{self.content}"""
+        self.ctl.controls = [self.text_area, self.view_area]
         self.update()
 
 
 view_input: View = None
 cate_tree_ctl = Ref[CateTreeControl]()
+markdown_editor_ctl = Ref[MarkdownEditor]()
 
 
 @flet_context
@@ -58,12 +97,12 @@ def page(ctx: Page, route: str):
                 sub_menu_widget(controls=[
                     user_card_widget(),
                     post_list_toolbar_widget(),
-                    CateTreeControl(ref=cate_tree_ctl)
+                    Container(CateTreeControl(ref=cate_tree_ctl), expand=1)
                 ]),
-            ]), margin=0)
-        ],
-        horizontal_alignment=CrossAxisAlignment.CENTER,
-        padding=SUMMARY_SIZE,
+                Column([MarkdownEditor(ref=markdown_editor_ctl)], expand=1,scroll= ScrollMode.AUTO)
+            ], expand=1), margin=0, expand=1)
+        ], horizontal_alignment=CrossAxisAlignment.CENTER,
+        padding=0,
     )
 
     return view
@@ -84,9 +123,12 @@ def post_list_toolbar_widget(ctx: Page):
     """
 
     post_list_toolbar = Container(Row([
-        IconButton(icons.CREATE_NEW_FOLDER, icon_size=FONT_SIZE, tooltip=_("创建新分类"), on_click=on_create_cate_event)
-    ],
-        alignment=MainAxisAlignment.END),
+        IconButton(icons.CREATE_NEW_FOLDER,
+                   icon_size=FONT_SIZE,
+                   tooltip=_("创建新分类"),
+                   on_click=on_create_cate_event)
+    ], alignment=MainAxisAlignment.END),
+        opacity=1,
         bgcolor=colors.BLACK12)
     return post_list_toolbar
 
@@ -165,4 +207,5 @@ def user_card_widget(ctx: Page):
 
 
 def user_logout_event(e: ControlEvent):
+    e.page.session.remove('login_account')
     e.page.go("/")

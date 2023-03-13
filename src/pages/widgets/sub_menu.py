@@ -6,7 +6,7 @@ from core.boot import flet_context
 
 
 @flet_context
-def sub_menu_widget(ctx: Page, controls: List=[]):
+def sub_menu_widget(ctx: Page, controls: List = []):
     """
     侧栏菜单
     @type ctx: Page
@@ -14,8 +14,6 @@ def sub_menu_widget(ctx: Page, controls: List=[]):
     """
     widget = Container(Column(controls=[
         *controls
-    ], scroll=ScrollMode.ADAPTIVE,
-        width=ctx.window_width / 4,
-        height=ctx.window_height,
+    ], width=ctx.window_width / 4,
     ), border=border.only(right=BorderSide(1, colors.BLACK12)))
     return widget

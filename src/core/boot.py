@@ -56,8 +56,7 @@ def boot(ctx: flet.Page):
     # 加载 APP_CONFIG:
     for v in APP_CONFIG:
         pydash.set_(ctx, v, APP_CONFIG[v])
-    # ctx.theme = Theme(font_family="PT-Mono")
-    # print(ctx.theme)
+
     ctx.horizontal_alignment = CrossAxisAlignment.CENTER
     ctx.vertical_alignment = MainAxisAlignment.CENTER
 
