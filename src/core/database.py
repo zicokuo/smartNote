@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Callable, Optional, T
+from typing import Callable, Optional
 
 from core.functions import log
 from prisma_client import Prisma
@@ -9,14 +9,18 @@ db: Prisma = Prisma()
 
 def db_this(f: Callable) -> Optional[Callable]:
     @wraps(f)
-    async def wrapper(*args, **kwargs):
-        await db.connect()
+    def wrapper(*args, **kwargs):
         try:
-            return await f(db=db, *args, **kwargs)
+            db.disconnect()
+            db.connect()
+        finally:
+            pass
+        try:
+            return f(db=db, *args, **kwargs)
         except BaseException as e:
             log.error(e)
             return e
         finally:
-            await db.disconnect()
+            db.disconnect()
 
     return wrapper

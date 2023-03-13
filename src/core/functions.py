@@ -2,7 +2,7 @@ import logging
 
 import flet
 
-from core.i18n import get_text
+from .i18n import get_text
 from settings import DEBUG, LOG_PATH, CODING_SET
 
 

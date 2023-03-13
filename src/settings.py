@@ -20,16 +20,18 @@ LANG = os.getenv('LANG', 'en')
 
 # 字体声明
 FONTS = {
-    "PTMono": "/fonts/PT-Mono.ttf"
+    "Harmony": "/fonts/HarmonyOS.ttf",
+    "PTMono": "/fonts/PT-Mono.ttf",
 }
 
 # 页面路由
 PAGES = {
-    "/"         : "index_view",
+    "/": "index_view",
     "/dashboard": "dashboard_view",
 }
 # 实装应用列表
 APP_CONFIG = dict(
+    version="0.1.1",
     title="SmartNote",
     theme_mode="light",
     window_width=1024,

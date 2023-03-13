@@ -1,13 +1,17 @@
+import sys
 from functools import wraps
 from importlib import import_module
 from typing import List, Optional, Callable, T
 
 import flet
 import pydash
-from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment, Page, KeyboardEvent
+from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment, Page, KeyboardEvent, Theme
 
-from core.functions import _, log
-from core.vos import RouteItemVo
+from prisma_client import Prisma
+from prisma_client.models import User
+from .database import db_this
+from .functions import _, log
+from .vos import RouteItemVo
 from settings import PAGES, FONTS, APP_CONFIG, DEBUG
 
 # 全局缓存对象
@@ -27,13 +31,19 @@ def init_app(routers: Optional[List[RouteItemVo]] = None):
     :param routers: 自定义路由表
     :return:
     """
-
+    sys.path.append(r'/src/')
     # 自动加载
     pydash.for_in(PAGES, lambda v, k: auto_import(RouteItemVo(route=k, filename=v))) if PAGES is not None else None
     pydash.for_each(routers, auto_import) if routers is not None else None
 
     # 应用开始
-    flet.app(target=boot, assets_dir="assets")
+    flet.app(target=boot, assets_dir="../assets/")
+
+
+@db_this
+def retrieve_session(session_account: str, db: Prisma) -> User:
+    user = db.user.find_first(where={'account': session_account})
+    return user
 
 
 def boot(ctx: flet.Page):
@@ -46,12 +56,14 @@ def boot(ctx: flet.Page):
     # 加载 APP_CONFIG:
     for v in APP_CONFIG:
         pydash.set_(ctx, v, APP_CONFIG[v])
-
+    # ctx.theme = Theme(font_family="PT-Mono")
+    # print(ctx.theme)
     ctx.horizontal_alignment = CrossAxisAlignment.CENTER
     ctx.vertical_alignment = MainAxisAlignment.CENTER
 
     ctx.on_route_change = route_change
     ctx.on_view_pop = view_pop
+
     ctx.go(ctx.route)
 
 
@@ -82,6 +94,14 @@ def flet_view(func, path: str):
 @flet_context
 def route_change(route: RouteChangeEvent, ctx: Page):
     ctx.views.clear()
+    # 检查 会话
+    if ctx.session.get('login_account') is None:
+        session_account = ctx.client_storage.get('login_account')
+
+        if session_account:
+            session_user = retrieve_session(session_account)
+            ctx.session.set('login_account', session_user)
+
     ctx_view = pydash.get(boot_ctx, f"routers.{route.data}")
 
     if ctx_view:

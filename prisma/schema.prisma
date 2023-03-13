@@ -1,5 +1,6 @@
 generator client {
   provider             = "prisma-client-py"
+  interface            = "sync"
   recursive_type_depth = 4
   output               = "../src/prisma_client/"
 }
@@ -18,26 +19,25 @@ model test {
 
 model User {
   // 用户
-  id        String    @id @default(uuid())
-  account   String
-  password  String
-  nickname  String
-  salt      String
-  create_at DateTime? @default(now())
-  update_at DateTime?
-  status    Int       @default(1)
-  Post      Post[]
+  id         String    @id @default(uuid())
+  account    String
+  password   String
+  nickname   String
+  salt       String
+  created_at DateTime? @default(now())
+  updated_at DateTime?
+  status     Int       @default(1)
 }
 
 model Dict {
   // 词典
-  id        String    @id @default(uuid())
-  main_code String
-  sub_code  String
-  group     String
-  status    Int       @default(1)
-  create_at DateTime? @default(now())
-  update_at DateTime?
+  id         String    @id @default(uuid())
+  main_code  String
+  sub_code   String
+  group      String
+  status     Int       @default(1)
+  created_at DateTime? @default(now())
+  updated_at DateTime?
 
   values DictValues[] @relation("DictValueToDict")
 
@@ -46,14 +46,14 @@ model Dict {
 
 model DictValues {
   // 词典值
-  id        String    @id @default(uuid())
-  code      String
-  value     String?
-  sort      Int       @default(-1)
-  type      String    @default("text")
-  create_at DateTime? @default(now())
-  update_at DateTime?
-  status    Int       @default(1)
+  id         String    @id @default(uuid())
+  code       String
+  value      String?
+  sort       Int       @default(-1)
+  type       String    @default("text")
+  created_at DateTime? @default(now())
+  updated_at DateTime?
+  status     Int       @default(1)
 
   Dict   Dict   @relation("DictValueToDict", fields: [dictId], references: [id])
   dictId String
@@ -63,18 +63,18 @@ model DictValues {
 
 model Post {
   // 文章类
-  id        String     @id @default(uuid())
-  title     String
-  code      String
-  author    User       @relation(fields: [userId], references: [id])
-  content   String?
-  is_deploy Boolean    @default(false)
-  create_at DateTime?  @default(now())
-  update_at DateTime?
-  deploy_at DateTime?
-  userId    String
-  status    Int        @default(1)
-  tags      PostTags[]
+  id         String     @id @default(uuid())
+  title      String
+  code       String
+  content    String?
+  is_deploy  Boolean    @default(false)
+  created_by String?
+  created_at DateTime?  @default(now())
+  updated_at DateTime?
+  deploy_at  DateTime?
+  userId     String
+  status     Int        @default(1)
+  tags       PostTags[]
 }
 
 model PostCate {
