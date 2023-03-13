@@ -3,7 +3,7 @@ from typing import Optional, List
 import pydash
 from flet_core import CrossAxisAlignment, Page, View, Container, Row, Image, Column, ImageFit, Text, ImageRepeat, \
     border_radius, IconButton, icons, MainAxisAlignment, colors, ControlEvent, AlertDialog, TextField, TextButton, \
-    Switch, Dropdown, dropdown, ListView, UserControl
+    Switch, Dropdown, dropdown, ListView, UserControl, Ref
 
 from core.boot import flet_context
 from core.database import db_this
@@ -17,13 +17,27 @@ from styles import FONT_SIZE, SUMMARY_SIZE
 
 
 class CateTreeControl(UserControl):
+    cate_tree: List[PostCate]
+
     def build(self):
-        return ListView(expand=1, spacing=SUMMARY_SIZE, auto_scroll=True, controls=list(
-            Text(f"{item.title}") for item in refresh_cate_tree()
+        self.cate_tree = refresh_cate_tree()
+        self.lv = ListView(expand=1, spacing=0, auto_scroll=True, controls=list(
+            Text(f"{item.title}") for item in self.cate_tree
         ))
+        return self.lv
+
+    def refresh(self):
+        self.cate_tree = refresh_cate_tree(is_refresh=True)
+        self.lv = ListView(expand=1, spacing=0, auto_scroll=True, controls=list(
+            Text(f"{item.title}") for item in self.cate_tree
+        ))
+        print(self.cate_tree)
+        self.update()
 
 
 view_input: View = None
+cate_tree_ctl = Ref[CateTreeControl]()
+
 
 @flet_context
 def refresh_cate_tree(ctx: Page, is_refresh=False):
@@ -38,19 +52,18 @@ def refresh_cate_tree(ctx: Page, is_refresh=False):
 
 
 def page(ctx: Page, route: str):
-    cate_tree_ctl = CateTreeControl()
     view = View(
         route, [
             Container(Row([
                 sub_menu_widget(controls=[
                     user_card_widget(),
                     post_list_toolbar_widget(),
-                    cate_tree_ctl,
+                    CateTreeControl(ref=cate_tree_ctl)
                 ]),
             ]), margin=0)
         ],
         horizontal_alignment=CrossAxisAlignment.CENTER,
-        padding=0,
+        padding=SUMMARY_SIZE,
     )
 
     return view
@@ -100,6 +113,7 @@ def on_create_cate_event(e: ControlEvent):
         dynamic_msg_show(_("创建分类成功"), _(f"创建{cate_title_ctl.value}分类."))
         bottom_dialog_widget.open = False
         refresh_cate_tree(is_refresh=True)
+        cate_tree_ctl.current.refresh()
         e.page.update()
 
     bottom_dialog_widget = AlertDialog(
