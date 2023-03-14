@@ -20,9 +20,14 @@ boot_ctx = {}
 
 def auto_import(item: RouteItemVo):
     log.info(_(f"自动加载{item.route}挂在{item.filename}"))
-    pydash.set_(boot_ctx,
-                f"routers.{item.route}",
-                import_module(name=f".{item.filename}", package="pages").page, )
+    if not item.filename.startswith("apps"):
+        pydash.set_(boot_ctx,
+                    f"routers.{item.route}",
+                    import_module(name=f".{item.filename}", package="pages").page, )
+    else:
+        pydash.set_(boot_ctx,
+                    f"routers.{item.route}",
+                    import_module(name=f"{item.filename}",).page, )
 
 
 def init_app(routers: Optional[List[RouteItemVo]] = None):
@@ -102,6 +107,7 @@ def route_change(route: RouteChangeEvent, ctx: Page):
             ctx.session.set('login_account', session_user)
 
     ctx_view = pydash.get(boot_ctx, f"routers.{route.data}")
+    log.debug(_(f"路由跳转{route.data},视图{ctx_view}"))
 
     if ctx_view:
         ctx.views.append(ctx_view(ctx, ctx.route))

@@ -28,6 +28,7 @@ FONTS = {
 PAGES = {
     "/": "index_view",
     "/dashboard": "dashboard_view",
+    "/apps/pices":"apps.pices.index_view"
 }
 # 实装应用列表
 APP_CONFIG = dict(
