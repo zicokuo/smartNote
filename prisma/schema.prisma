@@ -29,7 +29,7 @@ model User {
   status     Int       @default(1)
 }
 
-model Dict {
+model DictKey {
   // 词典
   id         String    @id @default(uuid())
   main_code  String
@@ -55,8 +55,8 @@ model DictValues {
   updated_at DateTime?
   status     Int       @default(1)
 
-  Dict   Dict   @relation("DictValueToDict", fields: [dictId], references: [id])
-  dictId String
+  DictKey DictKey @relation("DictValueToDict", fields: [dictId], references: [id])
+  dictId  String
 
   @@unique([code, dictId])
 }
