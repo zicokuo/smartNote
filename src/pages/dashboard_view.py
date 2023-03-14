@@ -57,7 +57,7 @@ class MarkdownEditor(UserControl):
         on_tap_link=lambda e: page.launch_url(e.data),
         expand=1
     )
-    ctl = Card(Row([text_area, view_area]), expand=1 )
+    ctl = Card(Row([text_area, view_area]), expand=1)
 
     def build(self):
         self.text_area.on_change = self.on_text_area_change
@@ -99,7 +99,7 @@ def page(ctx: Page, route: str):
                     post_list_toolbar_widget(),
                     Container(CateTreeControl(ref=cate_tree_ctl), expand=1)
                 ]),
-                Column([MarkdownEditor(ref=markdown_editor_ctl)], expand=1,scroll= ScrollMode.AUTO)
+                Column([MarkdownEditor(ref=markdown_editor_ctl)], expand=1, scroll=ScrollMode.AUTO)
             ], expand=1), margin=0, expand=1)
         ], horizontal_alignment=CrossAxisAlignment.CENTER,
         padding=0,

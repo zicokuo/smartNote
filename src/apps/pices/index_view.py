@@ -1,25 +1,30 @@
 import os
 from typing import List
 
-import pydash
 from flet_core import Page, View, Text, AppBar, colors, Row, UserControl, IconButton, icons, Ref, Column, ListTile, \
-    MainAxisAlignment, Container, FilePicker, FilePickerResultEvent, TextField, Card, GridView, ControlEvent, Icon, \
-    Image, ImageFit, ImageRepeat, border_radius, Border, border, Draggable, DragTarget
+    MainAxisAlignment, Container, FilePicker, FilePickerResultEvent, TextField, GridView, ControlEvent, Icon, \
+    Image, ImageFit, ImageRepeat, border, TextAlign, CrossAxisAlignment
 from pydantic import BaseModel
 
 from core.functions import _, log
-from styles import FONT_SIZE, UNIT_SIZE
+from styles import FONT_SIZE, UNIT_SIZE, SUMMARY_SIZE
 
 selected_files = Text(expand=1)
 
 
 class FolderItemVo(BaseModel):
+    """
+    文件夹Vo
+    """
     name: str
     path: str
     is_dir: bool
 
 
 class FileItemVo(BaseModel):
+    """
+    文件Vo
+    """
     name: str
     path: str
     ext: str
@@ -50,13 +55,34 @@ def drag_leave(e):
     e.control.update()
 
 
+def on_bulk_modify_filename_event(e: ControlEvent):
+    """
+    批量修改文件名
+    @param e:
+    @return:
+    """
+    global folder_tree_selected_ctl;
+    if folder_tree_selected_ctl:
+        cur_path:str = folder_tree_selected_ctl.data.path
+        folder_name = os.path.basename(cur_path)
+        for filename in os.listdir(cur_path):  # 获取当前目录下的所有文件名
+            if filename.endswith('.png') or filename.endswith('.jpeg'):  # 判断文件名
+                os.rename(os.path.join(cur_path ,filename), f"{cur_path}/{folder_name}_{filename}")
+
+def on_pice_hover_event(e: ControlEvent):
+    e.control.border = border.all(1, colors.BLACK38) if e.control.border is None else None
+    e.control.update()
+
+
 def on_folder_click_event(e: ControlEvent):
     """
     点击文件夹
     :param e:
     :return:
     """
+    global folder_tree_selected_ctl
     e.control.selected = True
+    folder_tree_selected_ctl = e.control
     # 扫描文件
     cur_path = e.control.data.path
     file_list: List[FileItemVo] = []
@@ -70,33 +96,27 @@ def on_folder_click_event(e: ControlEvent):
                     path=os.path.join(cur_path, file.name)
                 ))
 
-    pics_area_ref.current.controls = list(
-        Draggable(
-            group="pices",
-            content=Column([Container(
+    files_area_ref.current.controls = list(
+        Container(
+            Column([
                 Image(
                     src=f"{file.path}",
                     fit=ImageFit.CONTAIN,
                     repeat=ImageRepeat.NO_REPEAT,
-                    border_radius=border_radius.all(FONT_SIZE),
+                    aspect_ratio=1,
                     data=file,
-                ), border=border.all(1, colors.BLACK38)
-            ), Text(f"{file.name}")
-
-            ]),
-            content_feedback=Container(Image(
-                tooltip=f"{file.name}",
-                src=f"{file.path}",
-                fit=ImageFit.CONTAIN,
-                repeat=ImageRepeat.NO_REPEAT,
-                border_radius=border_radius.all(FONT_SIZE),
-                data=file,
-                width=64,
-            ), border=border.all(1, colors.BLACK38)),
+                    semantics_label=f"{file.name}",
+                    expand=1
+                ),
+                Text(f"{file.name}", size=SUMMARY_SIZE, text_align=TextAlign.CENTER,no_wrap=False)
+            ], aspect_ratio=1, tight=True, horizontal_alignment=CrossAxisAlignment.CENTER),
+            padding=FONT_SIZE,
+            on_hover=on_pice_hover_event,
+            margin=FONT_SIZE,
         )
         for file in file_list
     )
-    pics_area_ref.current.update()
+    files_area_ref.current.update()
 
 
 def on_pick_files_result_event(e: FilePickerResultEvent):
@@ -106,7 +126,7 @@ def on_pick_files_result_event(e: FilePickerResultEvent):
     # selected_files.update()
     if e.files:
         cur_path = os.path.dirname(e.files[0].path)
-        file_path_input_ref.current.value = cur_path
+        root_folder_path_input_ref.current.value = cur_path
         # 读取文件目录
         folder_list = []
         for folder in os.scandir(cur_path):
@@ -114,7 +134,7 @@ def on_pick_files_result_event(e: FilePickerResultEvent):
                 name=folder.name,
                 path=os.path.join(cur_path, folder.name),
                 is_dir=folder.is_dir())) if folder.is_dir() else None
-        file_tree_ref.current.folder_list_ctl.controls = list(
+        folder_tree_ref.current.folder_list_ctl.controls = list(
             ListTile(
                 data=folder,
                 dense=True,
@@ -128,11 +148,11 @@ def on_pick_files_result_event(e: FilePickerResultEvent):
         log.debug("目录树")
         log.debug(folder_list)
 
-        file_tree_ref.current.folder_list_ctl.update()
-        file_path_input_ref.current.update()
+        folder_tree_ref.current.folder_list_ctl.update()
+        root_folder_path_input_ref.current.update()
 
 
-class FileTree(UserControl):
+class FolderTree(UserControl):
     """
     文件树
     """
@@ -149,10 +169,11 @@ class FileTree(UserControl):
         return self.folder_list_ctl
 
 
-file_tree_ref = Ref[FileTree]()
+folder_tree_ref = Ref[FolderTree]()
 pick_files_dialog = FilePicker(on_result=on_pick_files_result_event)
-file_path_input_ref = Ref[TextField]()
-pics_area_ref = Ref[GridView]()
+root_folder_path_input_ref = Ref[TextField]()
+files_area_ref = Ref[GridView]()
+folder_tree_selected_ctl: ListTile = None
 
 
 def page(ctx: Page, route: str):
@@ -163,15 +184,19 @@ def page(ctx: Page, route: str):
     :return:
     """
     v = View(route, [
-        AppBar(title=Text(_(f"改图工具 - alpha")), bgcolor=colors.BLACK12),
+        AppBar(title=Text(_(f"改图工具 - alpha")), bgcolor=colors.BLACK12,
+               actions=[
+                   IconButton(icon=icons.TEXT_ROTATION_NONE, tooltip=_("文件名批量修改"),
+                              on_click=on_bulk_modify_filename_event)
+               ]),
         Row([
-            TextField(ref=file_path_input_ref, label=_("文件夹路径"), dense=True, content_padding=UNIT_SIZE),
+            TextField(ref=root_folder_path_input_ref, label=_("文件夹路径"), dense=True, content_padding=UNIT_SIZE),
             IconButton(icon=icons.FOLDER_OPEN, on_click=lambda _: pick_files_dialog.pick_files())
         ]),
         Row([
-            Container(FileTree(ref=file_tree_ref, ), width=ctx.width / 5, bgcolor=colors.BLACK12, margin=0),
+            Container(FolderTree(ref=folder_tree_ref, ), width=ctx.width / 5, bgcolor=colors.BLACK12, margin=0),
             Column([GridView(
-                ref=pics_area_ref,
+                ref=files_area_ref,
                 spacing=UNIT_SIZE,
                 expand=1,
                 runs_count=UNIT_SIZE,
