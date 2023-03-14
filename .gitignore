@@ -3,3 +3,4 @@
 /.idea/*
 /temp/*
 poetry.lock
+./src/prisma_client
