@@ -1,18 +1,18 @@
 import sys
 from functools import wraps
 from importlib import import_module
-from typing import List, Optional, Callable, T
+from typing import List, Optional, Callable
 
 import flet
 import pydash
-from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment, Page, KeyboardEvent, Theme
+from flet_core import RouteChangeEvent, CrossAxisAlignment, MainAxisAlignment, Page, KeyboardEvent
 
 from prisma_client import Prisma
 from prisma_client.models import User
+from settings import PAGES, FONTS, APP_CONFIG, DEBUG
 from .database import db_this
 from .functions import _, log
 from .vos import RouteItemVo
-from settings import PAGES, FONTS, APP_CONFIG, DEBUG
 
 # 全局缓存对象
 boot_ctx = {}
@@ -27,7 +27,7 @@ def auto_import(item: RouteItemVo):
     else:
         pydash.set_(boot_ctx,
                     f"routers.{item.route}",
-                    import_module(name=f"{item.filename}",).page, )
+                    import_module(name=f"{item.filename}", ).page, )
 
 
 def init_app(routers: Optional[List[RouteItemVo]] = None):
@@ -71,9 +71,9 @@ def boot(ctx: flet.Page):
     ctx.go(ctx.route)
 
 
-def flet_context(func: Callable[..., T]) -> Callable[..., T]:
+def flet_context(func: Callable) -> Callable:
     @wraps(func)
-    def wrapper(*args: Callable[..., T], **kwargs: Callable[..., T]):
+    def wrapper(*args: Callable, **kwargs: Callable):
         ctx: flet.Page = pydash.get(boot_ctx, 'ctx')
         res = func(ctx=ctx, *args, **kwargs)
         pydash.set_(boot_ctx, 'ctx', ctx)

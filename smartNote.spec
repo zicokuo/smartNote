@@ -41,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\DELL\\AppData\\Local\\Temp\\ade60ba3-a665-4ca8-b61e-a2ba90a38385',
+    version='C:\\Users\\DELL\\AppData\\Local\\Temp\\6ab7b70a-862b-4a39-b191-4c98d8e5fb61',
 )
