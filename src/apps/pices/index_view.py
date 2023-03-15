@@ -148,7 +148,7 @@ def on_folder_click_event(e: ControlEvent):
 
 
 def load_root_folder_by_path(cur_path: str):
-    root_folder_path_input_ref.current.value = cur_path
+    root_folder_path_input_ref.current.value = os.path.abspath(cur_path)
     # 读取文件目录
     folder_list = []
     for folder in os.scandir(cur_path):
@@ -157,7 +157,7 @@ def load_root_folder_by_path(cur_path: str):
             path=os.path.join(cur_path, folder.name),
             is_dir=folder.is_dir())) if folder.is_dir() else None
 
-    parent_folder_path: str = os.path.dirname(os.path.dirname(cur_path))
+    parent_folder_path: str = os.path.dirname(cur_path)
     folder_tree_ref.current.folder_list_ctl.controls = [ListTile(
         data=FolderItemVo(
             name=parent_folder_path,
