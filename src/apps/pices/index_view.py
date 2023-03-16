@@ -1,17 +1,25 @@
 import os
+import sys
+from shutil import copyfile
 from typing import List
 
-import pydash
-from third.pillow import Image as PilImage
-from flet_core import Page, View, Text, AppBar, colors, Row, UserControl, IconButton, icons, Ref, Column, ListTile, \
-    MainAxisAlignment, Container, FilePicker, FilePickerResultEvent, TextField, GridView, ControlEvent, Icon, \
-    Image, ImageFit, ImageRepeat, border, TextAlign, CrossAxisAlignment
+from arrow import Arrow
+
+from apps.pices.widgets.bulk_modify_files_banner_widget import BulkModifyFilesBannerWidget, \
+    BulkModifyFilesBannerWidgetValuesVo
+
+if sys.platform == 'darwin':
+    from PIL import Image as PilImage
+else:
+    from third.pillow import Image as PilImage
+
+import flet as ft
 from pydantic import BaseModel
 
-from core.functions import _, log
+from core.functions import _
 from styles import FONT_SIZE, UNIT_SIZE, SUMMARY_SIZE
 
-selected_files = Text(expand=1)
+selected_files = ft.Text(expand=1)
 
 
 class FolderItemVo(BaseModel):
@@ -34,8 +42,8 @@ class FileItemVo(BaseModel):
 
 
 def drag_will_accept(e):
-    e.control.content.border = border.all(
-        2, colors.BLACK45 if e.data == "true" else colors.RED
+    e.control.content.border = ft.border.all(
+        2, ft.colors.BLACK45 if e.data == "true" else ft.colors.RED
     )
     e.control.width = 100
     e.control.height = 100
@@ -57,7 +65,27 @@ def drag_leave(e):
     e.control.update()
 
 
-def on_bulk_modify_filename_event(e: ControlEvent):
+def on_banner_sure_event(e: ft.ControlEvent):
+    data: BulkModifyFilesBannerWidgetValuesVo = banner_ref.current.content.get_data()
+    print(data)
+    pass
+
+
+def on_banner_close_event(e: ft.ControlEvent):
+    banner_ref.current.open = not banner_ref.current.open
+    banner_ref.current.update()
+
+
+def on_bulk_modify_filename_event(e: ft.ControlEvent):
+    inner_ctl = BulkModifyFilesBannerWidget()
+
+    # 通栏
+    banner_ref.current.content = inner_ctl
+    banner_ref.current.open = not banner_ref.current.open
+    banner_ref.current.update()
+
+
+def on_sure_bulk_modify_files_event(e: ft.ControlEvent):
     """
     批量修改文件名
     @param e:
@@ -65,14 +93,24 @@ def on_bulk_modify_filename_event(e: ControlEvent):
     """
     global folder_tree_selected_ctl
     if folder_tree_selected_ctl:
+        # 当前文件夹路径
         cur_path: str = folder_tree_selected_ctl.data.path
+        # 当前备份文件夹路径
+        cur_backup_path: str = os.path.join(cur_path, f'origin_{Arrow.now().format("YYYYMMDDHHmmss")}')
+
+        os.makedirs(os.path.join(cur_backup_path))
+
         folder_name = os.path.basename(cur_path)
         idx = 0
         for filename in os.listdir(cur_path):  # 获取当前目录下的所有文件名
             if filename.endswith('.png') or filename.endswith('.jpeg') or filename.endswith('.jpg'):  # 判断文件名
+
                 # 读取文件大小
                 file_path = os.path.join(cur_path, filename)
+                # 备份源文件
+                copyfile(file_path, os.path.join(cur_backup_path, filename))
                 img = PilImage.open(file_path)
+
                 addition = ""
 
                 if img.height == 1200:
@@ -92,8 +130,8 @@ def on_bulk_modify_filename_event(e: ControlEvent):
     selected_folder_vo and load_files_by_path(selected_folder_vo.path)
 
 
-def on_pice_hover_event(e: ControlEvent):
-    e.control.border = border.all(1, colors.BLACK38) if e.control.border is None else None
+def on_pice_hover_event(e: ft.ControlEvent):
+    e.control.border = ft.border.all(1, ft.colors.BLACK38) if e.control.border is None else None
     e.control.update()
 
 
@@ -110,19 +148,19 @@ def load_files_by_path(cur_path):
                 ))
 
     files_area_ref.current.controls = list(
-        Container(
-            Column([
-                Image(
+        ft.Container(
+            ft.Column([
+                ft.Image(
                     src=f"{file.path}",
-                    fit=ImageFit.CONTAIN,
-                    repeat=ImageRepeat.NO_REPEAT,
+                    fit=ft.ImageFit.CONTAIN,
+                    repeat=ft.ImageRepeat.NO_REPEAT,
                     aspect_ratio=1,
                     data=file,
                     semantics_label=f"{file.name}",
                     expand=1
                 ),
-                Text(f"{file.name}", size=SUMMARY_SIZE, text_align=TextAlign.CENTER, no_wrap=False)
-            ], aspect_ratio=1, tight=True, horizontal_alignment=CrossAxisAlignment.CENTER),
+                ft.Text(f"{file.name}", size=SUMMARY_SIZE, text_align=ft.TextAlign.CENTER, no_wrap=False)
+            ], aspect_ratio=1, tight=True, horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             padding=FONT_SIZE,
             on_hover=on_pice_hover_event,
             margin=FONT_SIZE,
@@ -132,19 +170,34 @@ def load_files_by_path(cur_path):
     files_area_ref.current.update()
 
 
-def on_folder_click_event(e: ControlEvent):
+def on_folder_click_event(e: ft.ControlEvent):
     """
     点击文件夹
     :param e:
     :return:
     """
-    global folder_tree_selected_ctl, selected_folder_vo
+    global folder_tree_selected_ctl
+    global selected_folder_vo
     selected_folder_vo = e.control.data
     folder_tree_selected_ctl = e.control
+
+    for folder_ctl in folder_tree_ref.current.folder_list_ctl.controls:
+        folder_ctl: ft.ListTile
+        if folder_ctl.data.is_dir:
+            if folder_ctl.data.path == e.control.data.path:
+                folder_ctl.selected = True
+                folder_ctl.leading = ft.Icon(ft.icons.FOLDER_OPEN, color=ft.colors.PRIMARY)
+            else:
+                folder_ctl.selected = False
+                folder_ctl.leading = ft.Icon(ft.icons.FOLDER, color=ft.colors.SECONDARY)
+
+        folder_ctl.update()
+
     # 扫描文件
     cur_path = e.control.data.path
     load_files_by_path(cur_path)
-    folder_tree_ref.current.folder_list_ctl.update()
+    folder_tree_ref.current.update()
+    e.page.update()
 
 
 def load_root_folder_by_path(cur_path: str):
@@ -158,64 +211,60 @@ def load_root_folder_by_path(cur_path: str):
             is_dir=folder.is_dir())) if folder.is_dir() else None
 
     parent_folder_path: str = os.path.dirname(cur_path)
-    folder_tree_ref.current.folder_list_ctl.controls = [ListTile(
+    folder_tree_ref.current.folder_list_ctl.controls = [ft.ListTile(
         data=FolderItemVo(
             name=parent_folder_path,
             path=parent_folder_path,
-            is_dir=True,
+            is_dir=False,
         ),
         dense=True,
-        leading=Icon(icons.TURN_LEFT, color=colors.PRIMARY),
-        title=Text(_(f"..")),
+        leading=ft.Icon(ft.icons.TURN_LEFT, color=ft.colors.PRIMARY),
+        title=ft.Text(_(f"..")),
         content_padding=UNIT_SIZE,
         on_click=lambda _: load_root_folder_by_path(parent_folder_path)
-    ), ] + list(ListTile(
+    ), ] + list(ft.ListTile(
         data=folder,
         dense=True,
-        leading=Icon(
-            icons.FOLDER_OPEN if pydash.get(selected_folder_vo, 'path') == folder.path else icons.FOLDER,
-            color=colors.PRIMARY),
-        trailing=IconButton(
-            data=folder,
-            icon=icons.KEYBOARD_TAB,
-            on_click=on_folder_item_go_event
-        ),
-        title=Text(_(f"{folder.name}")),
+        leading=ft.Icon(ft.icons.FOLDER, color=ft.colors.SECONDARY),
+        trailing=ft.IconButton(data=folder, icon=ft.icons.KEYBOARD_TAB, on_click=on_folder_item_go_event
+                               ),
+        title=ft.Text(_(f"{folder.name}")),
         content_padding=UNIT_SIZE,
         on_click=on_folder_click_event,
     ) for folder in folder_list)
 
-    log.debug("目录树")
-    log.debug(folder_list)
+    # log.debug("目录树")
+    # log.debug(folder_list)
 
     folder_tree_ref.current.update()
     root_folder_path_input_ref.current.update()
 
 
-def on_pick_files_result_event(e: FilePickerResultEvent):
-    # selected_files.value = (
-    #     ", ".join(map(lambda f: f.name, e.files)) if e.files else "Cancelled!"
-    # )
-    # selected_files.update()
+def on_pick_files_result_event(e: ft.FilePickerResultEvent):
+    """
+    选择文件路径事件
+    @param e:
+    @return:
+    """
     if e.files:
         cur_path = os.path.dirname(e.files[0].path)
         load_root_folder_by_path(cur_path)
 
 
-def on_root_folder_path_submit_event(e: ControlEvent):
+def on_root_folder_path_submit_event(e: ft.ControlEvent):
     load_root_folder_by_path(e.control.value)
 
 
-def on_folder_item_go_event(e: ControlEvent):
+def on_folder_item_go_event(e: ft.ControlEvent):
     load_root_folder_by_path(e.control.data.path)
 
 
-class FolderTree(UserControl):
+class FolderTree(ft.UserControl):
     """
     文件树
     """
-    toolbar_ctl = Row(height=FONT_SIZE * 2, alignment=MainAxisAlignment.END)
-    folder_list_ctl = Column(scroll=True, expand=1)
+    toolbar_ctl = ft.Row(height=FONT_SIZE * 2, alignment=ft.MainAxisAlignment.END)
+    folder_list_ctl = ft.Column(scroll=True, expand=1)
 
     def build(self):
         # self.toolbar_ctl.controls = [
@@ -226,40 +275,52 @@ class FolderTree(UserControl):
 
         return self.folder_list_ctl
 
+    def update(self):
+        self.folder_list_ctl.update()
+        super().update()
 
-folder_tree_ref = Ref[FolderTree]()
-pick_files_dialog = FilePicker(on_result=on_pick_files_result_event)
-root_folder_path_input_ref = Ref[TextField]()
-files_area_ref = Ref[GridView]()
-folder_tree_selected_ctl: ListTile = None
+
+# 目录树
+folder_tree_ref = ft.Ref[FolderTree]()
+# 文件选择器
+pick_files_dialog = ft.FilePicker(on_result=on_pick_files_result_event)
+# 根目录路径输入
+root_folder_path_input_ref = ft.Ref[ft.TextField]()
+# 文件操作区域
+files_area_ref = ft.Ref[ft.GridView]()
+# 文件夹树单项
+folder_tree_selected_ctl: ft.ListTile = None
 selected_folder_vo = None
+# 通栏
+banner_ref = ft.Ref[ft.Banner]()
 
 
-def page(ctx: Page, route: str):
+def page(ctx: ft.Page, route: str):
     """
     改图工具
     :param ctx:
     :param route:
     :return:
     """
-    v = View(route, [
-        AppBar(title=Text(_(f"改图工具 - alpha")), bgcolor=colors.BLACK12,
-               actions=[
-                   IconButton(icon=icons.TEXT_ROTATION_NONE, tooltip=_("文件名批量修改"),
-                              on_click=on_bulk_modify_filename_event)
-               ]),
-        Row([
-            TextField(ref=root_folder_path_input_ref, label=_("文件夹路径"), dense=True, content_padding=UNIT_SIZE,
-                      on_submit=on_root_folder_path_submit_event),
-            IconButton(icon=icons.FOLDER_OPEN, on_click=lambda _: pick_files_dialog.pick_files())
+    v = ft.View(route, [
+        ft.AppBar(title=ft.Text(_(f"改图工具 - alpha")), bgcolor=ft.colors.BLACK12,
+                  actions=[
+                      ft.IconButton(icon=ft.icons.TEXT_ROTATION_NONE,
+                                    tooltip=_("文件名批量修改"),
+                                    on_click=on_bulk_modify_filename_event)
+                  ]),
+        ft.Row([
+            ft.TextField(ref=root_folder_path_input_ref, label=_("文件夹路径"), dense=True, content_padding=UNIT_SIZE,
+                         on_submit=on_root_folder_path_submit_event),
+            ft.IconButton(icon=ft.icons.FOLDER_OPEN, on_click=lambda _: pick_files_dialog.pick_files())
         ]),
-        Row([
-            Container(
+        ft.Row([
+            ft.Container(
                 FolderTree(ref=folder_tree_ref, ),
                 width=ctx.width / 5,
-                bgcolor=colors.BLACK12, margin=0
+                bgcolor=ft.colors.BLACK12, margin=0
             ),
-            Column([GridView(
+            ft.Column([ft.GridView(
                 ref=files_area_ref,
                 spacing=UNIT_SIZE,
                 expand=1,
@@ -268,8 +329,12 @@ def page(ctx: Page, route: str):
                 run_spacing=UNIT_SIZE,
                 padding=UNIT_SIZE,
             )], width=ctx.width / 4, auto_scroll=True, expand=1)
-        ], expand=1, vertical_alignment=CrossAxisAlignment.STRETCH)
+        ], expand=1, vertical_alignment=ft.CrossAxisAlignment.STRETCH)
     ])
 
     ctx.overlay.append(pick_files_dialog)
+    ctx.banner = ft.Banner(ref=banner_ref, open=False, actions=[
+        ft.TextButton(_("确定"), on_click=on_banner_sure_event),
+        ft.TextButton(_("取消"), on_click=on_banner_close_event)
+    ])
     return v

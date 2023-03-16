@@ -17,6 +17,7 @@ requests = "^2.28.2"
 pyinstaller = {version = "^5.8.0",  python=">=3.9,<3.12"}
 prisma = "^0.8.2"
 pillow = "^9.4.0"
+arrow = "^1.2.3"
 
 [tool.poetry.dev-dependencies]
 pylint = "*"
