@@ -66,7 +66,12 @@ def drag_leave(e):
 
 
 def on_banner_sure_event(e: ft.ControlEvent):
-    data: BulkModifyFilesBannerWidgetValuesVo = banner_ref.current.content.get_data()
+    """
+    批量修改文件名通栏确认事件
+    @param e:
+    @return:
+    """
+    data: BulkModifyFilesBannerWidgetValuesVo = banner_ref.current.content.submit_data
     print(data)
     pass
 
@@ -76,7 +81,7 @@ def on_banner_close_event(e: ft.ControlEvent):
     banner_ref.current.update()
 
 
-def on_bulk_modify_filename_event(e: ft.ControlEvent):
+def on_bulk_modify_filename_show_event(e: ft.ControlEvent):
     inner_ctl = BulkModifyFilesBannerWidget()
 
     # 通栏
@@ -307,7 +312,7 @@ def page(ctx: ft.Page, route: str):
                   actions=[
                       ft.IconButton(icon=ft.icons.TEXT_ROTATION_NONE,
                                     tooltip=_("文件名批量修改"),
-                                    on_click=on_bulk_modify_filename_event)
+                                    on_click=on_bulk_modify_filename_show_event)
                   ]),
         ft.Row([
             ft.TextField(ref=root_folder_path_input_ref, label=_("文件夹路径"), dense=True, content_padding=UNIT_SIZE,

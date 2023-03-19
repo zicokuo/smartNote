@@ -1,3 +1,5 @@
+from typing import Callable
+
 import flet as ft
 from pydantic import BaseModel
 
@@ -10,6 +12,9 @@ class BulkModifyFilesBannerWidgetValuesVo(BaseModel):
 
 
 class BulkModifyFilesBannerWidget(ft.UserControl):
+    """
+    批量修改文件名配置通栏
+    """
     banner_ctl: ft.Container
     scale_switch_ctl = ft.Switch(label=_("启用缩放"))
     scale_width_ctl = ft.TextField(label=_("宽度(px)"))
@@ -24,7 +29,12 @@ class BulkModifyFilesBannerWidget(ft.UserControl):
 
         return banner_ctl
 
-    def get_data(self):
+    @property
+    def submit_data(self):
+        """
+        获取data
+        @return:
+        """
         vo = BulkModifyFilesBannerWidgetValuesVo(
             can_scale=self.scale_switch_ctl.value,
             scale_width=self.scale_switch_ctl.value or 0
